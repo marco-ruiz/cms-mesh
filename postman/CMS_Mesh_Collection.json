@@ -1,0 +1,1087 @@
+{
+  "info": {
+    "name": "CMS Mesh API",
+    "description": "Integration tests for the Content Mesh Framework. Covers JSON payloads, headers parsing, dynamic configurations, and SSE streaming.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. GET /api/v1/page/structure - Default Desktop User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/home",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET /api/v1/page - VIP Mobile User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "mobile-app"
+          },
+          {
+            "key": "tier",
+            "value": "VIP"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=/content/home&provider=LOCAL_JCR",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "LOCAL_JCR"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. GET /api/v1/page/stream - SSE Streaming (IoT)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "iot-display"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/stream?path=/content/dashboard&provider=CMIS_REMOTE",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "stream"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/dashboard"
+            },
+            {
+              "key": "provider",
+              "value": "CMIS_REMOTE"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. POST /api/v1/cache/invalidate - Standard Path",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"/content/home\"]"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/cache/invalidate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. POST /api/v1/cache/invalidate - Boundary Limit Empty Payload",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[]"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/cache/invalidate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. POST /api/v1/cache/invalidate - Invalid JSON Mutation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"/content/unclosed-string"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/cache/invalidate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. GET /api/v1/page - Stress Profile Over-long Path",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=/content/home/stress/extreme/level/testing/profile/nested/page/path/exceeding/standard/buffer/allocations/to/validate/bounds",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home/stress/extreme/level/testing/profile/nested/page/path/exceeding/standard/buffer/allocations/to/validate/bounds"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. GET /api/v1/page/structure - AEM Provider",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "aem-consumer"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/home&provider=AEM_GRAPHQL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "AEM_GRAPHQL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. GET /api/v1/page/structure - web-lite Content Delivery",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "web-lite"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/news&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/news"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. GET /api/v1/page/structure - smart-tv Content Delivery with VIP Segment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "smart-tv"
+          },
+          {
+            "key": "tier",
+            "value": "VIP"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/home&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11. GET /api/v1/page - VIP member on web-lite",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "web-lite"
+          },
+          {
+            "key": "tier",
+            "value": "VIP"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=/content/shop&provider=LOCAL_JCR",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/shop"
+            },
+            {
+              "key": "provider",
+              "value": "LOCAL_JCR"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12. GET /api/v1/page/stream - SSE Streaming (smart-tv)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "smart-tv"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/stream?path=/content/dashboard&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "stream"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/dashboard"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13. GET /api/v1/page/structure - Empty Path Parameter Error Handling",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=&provider=LOCAL_JCR",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": ""
+            },
+            {
+              "key": "provider",
+              "value": "LOCAL_JCR"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14. POST /api/v1/cache/invalidate - Multiple Tag Invalidation List",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"/content/shop\", \"/content/home\", \"/content/dashboard\"]"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/cache/invalidate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "15. POST /api/v1/cache/invalidate - Cache Eviction Special Characters",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"/content/special-!@#$%^&*()_+\"]"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/cache/invalidate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "16. GET /api/v1/page - AEM Provider on mobile-app",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "mobile-app"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=/content/banner&provider=AEM_GRAPHQL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/banner"
+            },
+            {
+              "key": "provider",
+              "value": "AEM_GRAPHQL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "17. GET /api/v1/page/structure - JCR Provider on smart-tv",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "smart-tv"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/shop&provider=LOCAL_JCR",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/shop"
+            },
+            {
+              "key": "provider",
+              "value": "LOCAL_JCR"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "18. GET /api/v1/page/stream - CMIS Provider with VIP user on mobile-app",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "mobile-app"
+          },
+          {
+            "key": "tier",
+            "value": "VIP"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/stream?path=/content/promo&provider=CMIS_REMOTE",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "stream"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/promo"
+            },
+            {
+              "key": "provider",
+              "value": "CMIS_REMOTE"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "19. GET /api/v1/page/structure - Mock Local Fallback Trigger",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/missing-resource-id&provider=AEM_GRAPHQL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/missing-resource-id"
+            },
+            {
+              "key": "provider",
+              "value": "AEM_GRAPHQL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "20. GET /api/v1/page - Extreme Bounds Empty Path Query",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": ""
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "21. GET /api/v1/page/structure - Special Characters in Page Path",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/products/v2?sku=abc%26region=us-east&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/products/v2?sku=abc&region=us-east"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "22. GET /api/v1/page/stream - web-lite SSE Stream",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "web-lite"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/stream?path=/content/home&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "stream"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "23. GET /api/v1/page/structure - Null/Default Provider Fallback",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/home",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "24. GET /api/v1/page - Omitted Headers No Customization",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=/content/home&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "25. GET /api/v1/page/structure - Invalid Channel Header Mutation",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "unknown-fictional-channel"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/home&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "26. GET /api/v1/page/stream - AEM Provider on web-lite with VIP user",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "web-lite"
+          },
+          {
+            "key": "tier",
+            "value": "VIP"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/stream?path=/content/hero&provider=AEM_GRAPHQL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "stream"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/hero"
+            },
+            {
+              "key": "provider",
+              "value": "AEM_GRAPHQL"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "27. GET /api/v1/page/structure - JCR VIP mobile-app Combination",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "mobile-app"
+          },
+          {
+            "key": "tier",
+            "value": "VIP"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/home&provider=LOCAL_JCR",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/home"
+            },
+            {
+              "key": "provider",
+              "value": "LOCAL_JCR"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "28. POST /api/v1/cache/invalidate - Extreme payload size",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"/content/1\",\"/content/2\",\"/content/3\",\"/content/4\",\"/content/5\",\"/content/6\",\"/content/7\",\"/content/8\",\"/content/9\",\"/content/10\",\"/content/11\",\"/content/12\",\"/content/13\",\"/content/14\",\"/content/15\"]"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/cache/invalidate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "cache",
+            "invalidate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "29. GET /api/v1/page - CMIS Provider with Unknown Tier",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "iot-display"
+          },
+          {
+            "key": "tier",
+            "value": "REGULAR"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page?path=/content/news&provider=CMIS_REMOTE",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/news"
+            },
+            {
+              "key": "provider",
+              "value": "CMIS_REMOTE"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "30. GET /api/v1/page/structure - Complex Unicode characters in Path",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "channelId",
+            "value": "desktop-web"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/page/structure?path=/content/bopsys-%E2%98%85-mesh&provider=MOCK_LOCAL",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "page",
+            "structure"
+          ],
+          "query": [
+            {
+              "key": "path",
+              "value": "/content/bopsys-★-mesh"
+            },
+            {
+              "key": "provider",
+              "value": "MOCK_LOCAL"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

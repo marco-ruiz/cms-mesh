@@ -1,0 +1,19 @@
+server:
+  port: 3000
+
+cms:
+  mesh:
+    jcr:
+      user: "admin"
+      password: "admin"
+    cmis:
+      user: "admin"
+      password: "admin"
+      url: "http://localhost:8080/alfresco/api/-default-/public/cmis/versions/1.1/atom"
+      binding-type: "atompub"
+      repository-id: "default"
+    default-provider: LOCAL_JCR
+    cache:
+      enabled: true
+      max-size: 100000
+      expire-after-write-minutes: 30

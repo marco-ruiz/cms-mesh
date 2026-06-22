@@ -1,0 +1,51 @@
+profiles:
+  mobile-app:
+    channelId: mobile-app
+    rules:
+      - targetKey: color
+        actionType: SET
+        modificationValue: red
+      - targetKey: title
+        actionType: APPEND
+        modificationValue: " (Mobile)"
+  desktop-web:
+    channelId: desktop-web
+    rules:
+      - targetKey: layoutContext
+        actionType: SET
+        modificationValue: wide
+      - targetKey: renderSize
+        actionType: SET
+        modificationValue: xl
+  web-lite:
+    channelId: web-lite
+    rules:
+      - targetKey: autoplayVideo
+        actionType: SET
+        modificationValue: false
+      - targetKey: resolution
+        actionType: SET
+        modificationValue: low
+  smart-tv:
+    channelId: smart-tv
+    rules:
+      - targetKey: navigationType
+        actionType: SET
+        modificationValue: d-pad
+      - targetKey: renderSize
+        actionType: SET
+        modificationValue: xxl
+      - targetKey: textScale
+        actionType: SET
+        modificationValue: 200%
+  iot-display:
+    channelId: iot-display
+    rules:
+      - targetKey: interactive
+        actionType: SET
+        modificationValue: false
+      - targetKey: title
+        actionType: PREPEND
+        modificationValue: "[IoT] "
+      - targetKey: detailsText
+        actionType: REMOVE
