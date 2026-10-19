@@ -1,5 +1,6 @@
 package net.bopsys.cms.mesh.config;
 
+import net.bopsys.cms.mesh.batch.CmsBatchProperties;
 import net.bopsys.cms.mesh.engine.ProviderDriversRegistry;
 import net.bopsys.cms.mesh.engine.CustomizationFiltersRegistry;
 import net.bopsys.cms.mesh.engine.LayoutAssembler;
@@ -18,7 +19,9 @@ import java.util.List;
  * @author Marco Ruiz
  */
 @Configuration
-@EnableConfigurationProperties({MeshProperties.class, CmisProperties.class, JcrProperties.class, AemProperties.class})
+@EnableConfigurationProperties(
+		{MeshProperties.class, CmisProperties.class, JcrProperties.class, AemProperties.class, CmsBatchProperties.class}
+)
 public class MeshConfig {
 
 	@Bean
