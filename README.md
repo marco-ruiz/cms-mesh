@@ -131,8 +131,7 @@ sequenceDiagram
 
 The `BiDirectionalIndexCache` maintains tag-to-key and key-to-tag relationships. This diagram demonstrates how the cache shifts states programmatically or asynchronously.
 
-```mermaid
-stateDiagram-v2
+```stateDiagram-v2
     [*] --> UncachedState : Cold Ingress Inbound Requests
     UncachedState --> MemoryAllocatedState : put() Invocation Triggered
 
