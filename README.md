@@ -6,12 +6,13 @@ This repository serves as an architectural proof-of-concept demonstrating a high
 * **Reactive Core:** Engineered natively on **Project Reactor** and Spring WebFlux to guarantee non-blocking I/O execution loops under high concurrent stress.
 * **Multi-Protocol Federation:** Abstracted driver pipeline resolving content seamlessly across modern Headless CMS (AEM GraphQL) and legacy enterprise systems (JCR/Jackrabbit, CMIS) concurrently.
 * **Stateless Pipeline Customization:** Sequential, thread-safe in-memory filtering engine for on-the-fly localization, currency serialization, and dynamic targeting before layout delivery.
+* **Enterprise Spring Batch Support:** Scalable Master-Slave partitioned batch jobs (`cachePreWarmJob`) for proactive distributed cache pre-warming, featuring asynchronous chunk processing and SPI-driven source providers.
 
 ---
 
 ## 1. Architecture Overview
 
-CMS Mesh is a high-performance content delivery framework designed to unify, target, and transform unstructured content across multiple Content Management Systems (CMS) including JCR/Jackrabbit repositories and CMIS-compliant systems. It integrates dynamic customization filters and an in-memory bi-directional cache.
+CMS Mesh is a high-performance content delivery framework designed to unify, target, and transform unstructured content across multiple Content Management Systems (CMS) including JCR/Jackrabbit repositories and CMIS-compliant systems. It integrates dynamic customization filters, an in-memory bi-directional cache, and distributed batch processing capabilities.
 
 ### Component & Class Structure
 
@@ -25,9 +26,10 @@ graph TD
     classDef cache fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
     classDef spi fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
     classDef provider fill:#ffe0b2,stroke:#f57c00,stroke-width:2px;
+    classDef batch fill:#e0f7fa,stroke:#00acc1,stroke-width:2px;
 
     subgraph API_Layer [API & Ingress Layer]
-        CmsController["CmsController<br/>(REST & SSE Endpoints: /page/structure, /page, /page/stream)"]
+        CmsController["CmsController<br/>(REST & SSE Endpoints: /page/structure, /page, /page/stream, /cache/prewarm)"]
     end
     class CmsController api;
 
@@ -44,7 +46,18 @@ graph TD
     end
     class LayoutCache,BiDirectionalCache cache;
 
-    subgraph Targeting_Pipeline ["Customization Filters (SPI)"]
+    subgraph Batch_Infrastructure [Spring Batch Processing Layer]
+        JobLauncher["JobLauncher<br/>(Triggers cache pre-warm jobs)"]
+        Partitioner["CmsPagePartitioner<br/>(Master-slave sharding via SPI)"]
+        SourceProvider["CmsBatchSourceProvider<br/>(SPI for dynamic target paths)"]
+        AuditListener["CmsBatchAuditListener<br/>(Chunk duration & error auditing)"]
+
+        JobLauncher --> Partitioner
+        Partitioner --> SourceProvider
+    end
+    class JobLauncher,Partitioner,SourceProvider,AuditListener batch;
+
+    subgraph Targeting_Pipeline [Customization Filters - SPI]
         CustomizationFilter["CustomizationFilter<br/>(Interface)"]
         SegmentFilter["SegmentCustomizationFilter<br/>(Applies segment adjustments)"]
         ChannelFilter["ChannelCustomizationFilter<br/>(Applies channel specific states)"]
@@ -54,7 +67,7 @@ graph TD
     end
     class CustomizationFilter,SegmentFilter,ChannelFilter spi;
 
-    subgraph Content_Providers ["Provider Drivers (SPI)"]
+    subgraph Content_Providers [Provider Drivers - SPI]
         ProviderDriver["ProviderDriver<br/>(Interface)"]
         JcrProvider["JcrProviderDriver<br/>(Resolves nodes via JCR)"]
         CmisProvider["CmisProviderDriver<br/>(Resolves nodes via OpenCMIS)"]
@@ -68,6 +81,7 @@ graph TD
 
     %% Dependencies
     CmsController -->|Unifies incoming requests| LayoutAssembler
+    CmsController -->|Triggers batch prewarm job| JobLauncher
     LayoutAssembler -->|Read / Write records| LayoutCache
     LayoutAssembler -->|Sequentially runs components through| CustomizationFilter
     LayoutAssembler -->|Delegates layout & component resolution| ProviderDriver
@@ -143,7 +157,7 @@ stateDiagram-v2
 
 ## 2. Dynamic Configurations & Properties
 
-### JCR and CMIS Properties Configuration
+### JCR, CMIS, and Spring Batch Properties Configuration
 
 File configurations are driven by standard Spring Boot configuration loading.
 
@@ -168,9 +182,22 @@ cms:
       sling-namespace-uri: http://sling.apache.org/jcr/sling/1.0
       sling-template-property: sling:resourceType
       cq-template-property: cq:template
+    batch:
+      enabled: true
+      chunk-size: 10
+      grid-size: 4
+      thread-pool-size: 8
+      skip-limit: 3
+      retry-interval-ms: 1000
+      default-protocol: LOCAL_JCR
+      target-paths:
+        - "/content/home"
+        - "/content/products"
+        - "/content/about"
+        - "/content/pricing"
 ```
 
-`MeshProperties.java`, `JcrProperties.java`, and `CmisProperties.java` are loaded dynamically at runtime via Spring `@ConfigurationProperties`.
+`MeshProperties.java`, `JcrProperties.java`, `CmisProperties.java`, and `CmsBatchProperties.java` are loaded dynamically at runtime via Spring `@ConfigurationProperties`.
 
 ---
 
@@ -238,7 +265,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class StrapiProviderDriver implements ProviderDriver {
 
-    @Override
+    EOverride
     public ProviderDriverProtocol getSupportedProtocol() {
         return ProviderDriverProtocol.STRAPI_REST; // Map to enum specification
     }
@@ -247,20 +274,20 @@ public class StrapiProviderDriver implements ProviderDriver {
     public Mono<PageLayoutDefinition> resolvePageLayout(String pagePath) {
         // Build or query page metadata containing slotted arrays of component references
         return Mono.just(PageLayoutDefinition.builder()
-                .pagePath(pagePath)
-                .templateName("strapi-grid")
-                .slots(java.util.Map.of("content", new SlotGroupDefinition("content", java.util.List.of("/comp/101"))))
-                .build());
+            .pagePath(pagePath)
+            .templateName("strapi-grid")
+            .slots(java.util.Map.of("content", new SlotGroupDefinition("content", java.util.List.of("/comp/101"))))
+            .build());
     }
 
     @Override
     public Mono<ContentComponent> resolveComponent(String componentPath) {
         // Retrieve and parse unstructured component from the strapi repository
         return Mono.just(ContentComponent.builder()
-                .componentId(componentPath)
-                .type("strapi/banner")
-                .state(java.util.Map.of("headline", "Dynamic Banner Title"))
-                .build());
+            .componentId(componentPath)
+            .type("strapi/banner")
+            .state(java.util.Map.of("headline", "Dynamic Banner Title"))
+            .build());
     }
 }
 ```
@@ -282,7 +309,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class GeolocationCustomizationFilter implements CustomizationFilter {
 
-    @Override
+    EOverride
     public Mono<ContentComponent> applyCustomization(ContentComponent incoming, UserContext userContext) {
         // Inspect Context parameters (e.g. COUNTRY) and conditionally modify components map inside state
         return Mono.just(incoming); 
@@ -292,23 +319,76 @@ public class GeolocationCustomizationFilter implements CustomizationFilter {
 
 ---
 
-## 5. Testing and Validation
+## 5. Enterprise Spring Batch Cache Pre-Warming
 
-### Unit Testing via Gradle
-To execute all local unit, parameterized, and reactive pipeline integration tests, use:
+To eliminate cold-cache penalties and ensure high-throughput resilience, the framework includes an enterprise-grade **Spring Batch 5** distributed pre-warming subsystem.
+
+### Architecture & Capabilities
+* **Master-Slave Partitioning (`CmsPagePartitioner`):** Dynamically shards target content paths into discrete execution contexts at runtime.
+* **Asynchronous Chunk Processing (`AsyncItemProcessor` / `AsyncItemWriter`):** Offloads heavy layout assembly and cache hydration to background worker thread pools.
+* **SPI-Driven Source Provisioning (`CmsBatchSourceProvider`):** Externalizes path resolution and protocols, allowing custom repository traversals.
+* **Fault Tolerance & Auditing (`CmsBatchAuditListener`, `CmsBatchProperties`):** Implements step-level skip limits, retries, and chunk duration metrics.
+* **REST & Newman Integration:** Triggerable on-demand via `POST /api/v1/cache/prewarm`.
+
+### Spring Batch Architecture Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Admin / REST Client / Scheduler
+    participant Controller as CmsController
+    participant JobLauncher as Spring Batch JobLauncher
+    participant Partitioner as CmsPagePartitioner
+    participant WorkerStep as Worker Step (Partition-N)
+    participant AsyncProc as AsyncItemProcessor
+    participant Assembler as LayoutAssembler
+    participant Writer as AsyncItemWriter
+    participant Cache as LayoutCache
+
+    Client->>Controller: POST /api/v1/cache/prewarm
+    Controller->>JobLauncher: run(cachePreWarmJob, jobParameters)
+    JobLauncher->>Partitioner: partition(gridSize)
+    Partitioner->>Partitioner: Query CmsBatchSourceProvider
+    Partitioner-->>JobLauncher: Map<String, ExecutionContext> (Path Slices)
+    
+    loop Parallel Worker Threads
+        JobLauncher->>WorkerStep: Execute Partition Steps Concurrently
+        WorkerStep->>AsyncProc: Read & Offload Chunk Items
+        AsyncProc->>Assembler: assemblePageLayout(path, ctx, protocol)
+        Assembler-->>AsyncProc: Resolved PageLayout Model
+        AsyncProc-->>WorkerStep: Future<PageLayout>
+        WorkerStep->>Writer: Write Batch Chunk
+        Writer->>Cache: put(cacheKey, layout)
+    end
+
+    JobLauncher-->>Controller: JobExecution Summary
+    Controller-->>Client: JSON Response (jobId, status, exitCode)
+```
+
+---
+
+## 6. Testing and Validation
+
+### Unit & Integration Testing via Gradle
+To execute all local unit, parameterized, reactive pipeline, partitioner unit tests (`CmsPagePartitionerTest`), and batch integration tests (`CachePreWarmBatchIntegrationTest`), use:
 ```bash
 ./gradlew test
 ```
 
 ### Functional/Integration Routing Tests via Postman/Newman
-We maintain robust Newman integration test suites matching JSON configurations, HTTP status structures, invalidation pipelines and deep SSE streaming behaviors.
+This framework includes Newman integration test suites covering API endpoints, SSE streaming behaviors, and the batch pre-warm triggers.
 
-1. Ensure target server is running locally on port `3000`.
+#### Running Newman Tests
+1. Ensure target server is running locally on port :3000.
+    ```bash
+    ./gradlew bootRun
+    ```
+
 2. Install the Newman tool globally:
-   ```bash
-   npm install -g newman
-   ```
-3. Run the automated integration test matrix:
-   ```bash
-   newman run postman/CMS_Mesh_Collection.json
-   ```
+    ```bash
+    npm install -g newman
+    ```
+3. Platform test suites can be executed via Newmans CLI:
+    ```bash
+    newman run postman/cms-mesh-api.json
+    ```

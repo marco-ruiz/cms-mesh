@@ -1,27 +1,35 @@
 package net.bopsys.cms.mesh.controller;
 
 import net.bopsys.cms.mesh.engine.LayoutAssembler;
-import net.bopsys.cms.mesh.model.ContentComponent;
-import net.bopsys.cms.mesh.model.PageLayout;
-import net.bopsys.cms.mesh.model.SlottedComponent;
 import net.bopsys.cms.mesh.model.ContextKey;
+import net.bopsys.cms.mesh.model.PageLayout;
 import net.bopsys.cms.mesh.model.ProviderDriverProtocol;
+import net.bopsys.cms.mesh.model.SlottedComponent;
 import net.bopsys.cms.mesh.model.UserContext;
+
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Exposes REST API endpoints for the content aggregation mesh platform.
@@ -37,9 +45,17 @@ public class CmsController {
     @Value("${cms.mesh.default-provider:LOCAL_JCR}")
     private ProviderDriverProtocol defaultProviderDriver;
 
-    public CmsController(LayoutAssembler layoutAssembler) {
-        this.layoutAssembler = layoutAssembler;
-    }
+	private final JobLauncher jobLauncher;
+	private final Job cachePreWarmJob;
+
+	public CmsController(
+			LayoutAssembler layoutAssembler,
+			JobLauncher jobLauncher,
+			@Qualifier("cachePreWarmJob") Job cachePreWarmJob) {
+		this.layoutAssembler = layoutAssembler;
+		this.jobLauncher = jobLauncher;
+		this.cachePreWarmJob = cachePreWarmJob;
+	}
 
     /**
      * Resolves layout maps in-memory grouping slotted components.
@@ -119,4 +135,28 @@ public class CmsController {
     public Mono<Void> invalidateCache(@RequestBody List<String> tags) {
         return layoutAssembler.invalidateCache(tags);
     }
+
+	/**
+	 * Triggers the enterprise Spring Batch cache pre-warming job on-demand.
+	 *
+	 * @return Mono enclosing job execution summary details
+	 */
+	@PostMapping(value = "/cache/prewarm", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<Map<String, Object>> triggerCachePreWarm() {
+		return Mono.fromCallable(() -> {
+			JobParameters jobParameters = new JobParametersBuilder()
+					.addLong("triggerTime", System.currentTimeMillis())
+					.toJobParameters();
+
+			JobExecution execution = jobLauncher.run(cachePreWarmJob, jobParameters);
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("jobId", execution.getId());
+			response.put("jobName", execution.getJobInstance().getJobName());
+			response.put("status", execution.getStatus().name());
+			response.put("exitStatus", execution.getExitStatus().getExitCode());
+			response.put("startTime", execution.getStartTime() != null ? execution.getStartTime().toString() : null);
+			return response;
+		}).subscribeOn(Schedulers.boundedElastic());
+	}
 }

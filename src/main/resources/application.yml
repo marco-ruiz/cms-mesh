@@ -17,3 +17,17 @@ cms:
       enabled: true
       max-size: 100000
       expire-after-write-minutes: 30
+
+    batch:
+      enabled: true
+      chunk-size: 10
+      grid-size: 4
+      thread-pool-size: 8
+      skip-limit: 3
+      retry-interval-ms: 1000
+      default-protocol: LOCAL_JCR
+      target-paths:
+        - "/content/home"
+        - "/content/products"
+        - "/content/about"
+        - "/content/pricing"
